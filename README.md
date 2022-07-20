@@ -1,4 +1,4 @@
-# MNIST-kuvantunnistus
+# MNIST-numerontunnistus
 
 Käsin kirjoitettujen numeroiden tunnistus neuroverkolla.
 
