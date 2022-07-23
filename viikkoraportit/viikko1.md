@@ -5,4 +5,5 @@
 | Projektin alustus                   | 2t     |
 | Aiheeseen tutustuminen              | 3t     |
 | Määrittelydokumentin kirjoittaminen | 1t     |
-| **Yhteensä**                        | **6t** |
+| Referenssitoteutus                  | 2t     |
+| **Yhteensä**                        | **8t** |
