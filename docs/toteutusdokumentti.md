@@ -178,20 +178,15 @@ y_1 \\
 y_2 \\
 y_3 \\
 y_4
-\end{bmatrix}
+\end{bmatrix}$$
 
 $$
-
-
-$$
-
 softmax'(\vec{x}) = \vec{y} \odot \left ( \begin{bmatrix}
 1 & 0 & 0 & 0\\
 0 & 1 & 0 & 0\\
 0 & 0 & 1 & 0 \\
 0 & 0 & 0 & 1
 \end{bmatrix} - \vec{y}^T \right )
-
 $$
 
 $$\Rightarrow softmax'(\vec{x}) = softmax(\vec{x})\odot(I-softmax(\vec{x})^T)$$
@@ -224,26 +219,20 @@ Oletetaan, että $RE = f(\hat{y}_1, \hat{y}_2, \hat{y}_3)$
 
 Tällöin gradientti on:
 
-
 $$
-
 J = \frac{\partial RE }{\partial (\hat{y}\_1, \hat{y}\_2, \hat{y}\_3)}=\begin{bmatrix}
 \frac{\partial RE}{\partial \hat{y}\_1} \\
 \frac{\partial RE}{\partial \hat{y}\_2} \\
 \frac{\partial RE}{\partial \hat{y}\_3}
 \end{bmatrix}
-
 $$
 
-
 $$
-
 \Rightarrow J = \begin{bmatrix}
 \frac{-y_1}{\hat{y}\_1} \\
 \frac{-y_2}{\hat{y}\_2} \\
 \frac{-y_3}{\hat{y}\_3} \\
 \end{bmatrix} = -\frac{y}{\hat{y}}
-
 $$
 
 ```python
@@ -253,4 +242,3 @@ def ristientropia_gradientti(
 ) -> NDArray[np.float64]:
     return y / (y_hattu + 1e-100)
 ```
-$$
