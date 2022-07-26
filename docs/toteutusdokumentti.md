@@ -69,20 +69,26 @@ $o^{(2)} = \phi^{(2)}(W^{(2)}\cdot o^{(1)} + b^{(2)})$
 Jos syöte on esimerkiksi kuva, joka esittää numeroa 7,
 tulee verkon ulostulokerroksen jälkeisen vektorin arvot olla mahdollisimman lähellä:
 
-$\hat{y} = \begin{bmatrix}
+$$
+\hat{y} = \begin{bmatrix}
 0.0\\ % indeksi 0
 0.0\\ % indeksi 1
 0.0\\ % indeksi 2
 0.0\\ % indeksi 3
 0.0\\ % indeksi 4
 0.0\\ % indeksi 5
-1.0\\ % indeksi 6
-0.0\\ % indeksi 7
+0.0\\ % indeksi 6
+1.0\\ % indeksi 7
 0.0\\ % indeksi 8
 0.0  % indeksi 9
-\end{bmatrix}$
+\end{bmatrix}
+$$
 
-, jolloin indeksi 7:ssä on suurin todennäköisyysarvo.
+, jolloin indeksi 7:ssä on suurin todennäköisyysarvo. Ennustetun numeron saa tällöin helposti esiin koodilla:
+
+```python
+ennustus = y_hattu.argmax() #7
+```
 
 # Matemaattinen tausta
 
@@ -96,22 +102,26 @@ Neuronin ulostulo lasketaan kaavalla $y=\phi(W \cdot \vec{x}+b)$
 
 Tässä toteutuksessa käytetään välikerroksen aktivointifunktiona ReLU-funktiota (engl. Rectified Linear Unit)
 
-$\phi(x) = \begin{cases}
+$$
+\phi(x) = \begin{cases}
 0 & x \leq 0 \\
 x & x > 0
-\end{cases}$
+\end{cases}
+$$
 
 ```python
 def relu(x: NDArray[np.float64]) -> NDArray[np.float64]:
-    return np.where(x > 0, x, 0)
+    return np.maximum(0, x)
 ```
 
 **Aktivointifunktion ReLU derivaatta**
 
-$\phi'(x) = \begin{cases}
+$$
+\phi'(x) = \begin{cases}
 0 & x \leq 0 \\
 1 & x > 0
-\end{cases} $
+\end{cases}
+$$
 
 ```python
 def relu_gradientti(x: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -120,22 +130,41 @@ def relu_gradientti(x: NDArray[np.float64]) -> NDArray[np.float64]:
 
 **RMSprop**
 
-$\vec{\theta}_{t+1} = \vec{\theta_t} - \frac{\eta}{\sqrt{E[g^2]_t+\epsilon}}\vec{g}_t$
+RMSprop on gradienttimenetelmän optimointialgoritmi, jonka toimintaperiaate on pääpiirteittäin:
+
+- Kerätä gradienttien neliöiden liukuvaa keskiarvoa
+- Päivittää gradientit jakamalla ne keskiarvon neliöjuurella
+
+Linkki: [TensorFlow RMSProp](https://keras.io/api/optimizers/rmsprop/)
+
+Lähde: [Hinton, 2012](https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
+
+Liukuvan keskiarvon laskenta
+
+$$
+E[g^2]_t = \rho E[g^2]_{t-1} + (1-\rho)g_t^2
+$$
+
+jossa $\rho$ on vaimennuskerroin, oletuksena 0,9
+
+Gradienttien päivitys
+
+$$\vec{\theta}_{t+1} = \vec{\theta_t} - \frac{\eta}{\sqrt{E[g^2]_t+\epsilon}}\vec{g}_t$$
 
 jossa
 
 - $\vec{\theta}_{t+1}$ painot uuden iteraation jälkeen
 - $\vec{\theta}_{t}$ painot
-- $\eta$ oppimisvauhti (learning rate)
-- $E[g^2]_t$ nykyisen batchin gradienttien keskiarvon neliö
-- $\epsilon$ Pieni epsilon-arvo (10 $^{-8}$) estämään nollalla jaon
+- $\eta$ oppimisvauhti (learning rate), oletusarvo 0,001
+- $E[g^2]_t$ nykyisen alijoukon gradienttien keskiarvon neliö
+- $\epsilon$ Pieni epsilon-arvo estämään nollalla jaon, oletusarvo 1e-07
 - $\vec{g}_t$ gradientit
 
 **Softmax**
 
 Ulostulokerroksen aktivointifunktiona käytetään Softmaxia, jonka tuloksena ulostulokerroksen neuronien arvot muodostavat vektorin todennäköisyyksistä luokkakohtaisesti, jossa arvojen summa on 1.
 
-$\vec{y} = softmax(\vec{x}) = \frac{e^{x_i}}{\sum_{i=1}^{n}e^{x_i}}$
+$$\vec{y} = softmax(\vec{x}) = \frac{e^{x_i}}{\sum_{i=1}^{n}e^{x_i}}$$
 
 ```python
 def softmax(x: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -144,21 +173,28 @@ def softmax(x: NDArray[np.float64]) -> NDArray[np.float64]:
 
 Softmaxin derivaattafunktio:
 
-oletetaan, että $\vec{y}=\begin{bmatrix}
+oletetaan, että $$\vec{y}=\begin{bmatrix}
 y_1 \\
 y_2 \\
 y_3 \\
 y_4
-\end{bmatrix}$
+\end{bmatrix}
 
-$softmax'(\vec{x}) = \vec{y} \odot \left ( \begin{bmatrix}
+$$
+
+
+$$
+
+softmax'(\vec{x}) = \vec{y} \odot \left ( \begin{bmatrix}
 1 & 0 & 0 & 0\\
 0 & 1 & 0 & 0\\
 0 & 0 & 1 & 0 \\
 0 & 0 & 0 & 1
-\end{bmatrix} - \vec{y}^T \right )$
+\end{bmatrix} - \vec{y}^T \right )
 
-$\Rightarrow softmax'(\vec{x}) = softmax(\vec{x})\odot(I-softmax(\vec{x})^T)$
+$$
+
+$$\Rightarrow softmax'(\vec{x}) = softmax(\vec{x})\odot(I-softmax(\vec{x})^T)$$
 
 Huom.: $\odot$ tarkoittaa elementtikohtaista kertolaskua,eli [Hadamardin tuloa](<https://en.wikipedia.org/wiki/Hadamard_product_(matrices)>).
 
@@ -174,7 +210,7 @@ Jotta neuroverkkoa voidaan kouluttaa, on laskettava numeerinen arvo virheelle. T
 
 Koska tässä toteutuksessa on kyse luokittelusta, niin käytetään ristientropiafunktiota:
 
-$RE = -\sum_{i=1}^n y_i \cdot log(\hat{y}_i)$
+$$RE = -\sum_{i=1}^n y_i \cdot log(\hat{y}_i)$$
 
 ```python
 def ristientropia(y, y_hattu):
@@ -188,17 +224,27 @@ Oletetaan, että $RE = f(\hat{y}_1, \hat{y}_2, \hat{y}_3)$
 
 Tällöin gradientti on:
 
-$J = \frac{\partial RE }{\partial (\hat{y}_1, \hat{y}_2, \hat{y}_3)}=\begin{bmatrix}
-\frac{\partial RE}{\partial \hat{y}_1} \\
-\frac{\partial RE}{\partial \hat{y}_2} \\
-\frac{\partial RE}{\partial \hat{y}_3}
-\end{bmatrix}$
 
-$\Rightarrow J = \begin{bmatrix}
-\frac{-y_1}{\hat{y}_1} \\
-\frac{-y_2}{\hat{y}_2} \\
-\frac{-y_3}{\hat{y}_3} \\
-\end{bmatrix} = -\frac{y}{\hat{y}}$
+$$
+
+J = \frac{\partial RE }{\partial (\hat{y}\_1, \hat{y}\_2, \hat{y}\_3)}=\begin{bmatrix}
+\frac{\partial RE}{\partial \hat{y}\_1} \\
+\frac{\partial RE}{\partial \hat{y}\_2} \\
+\frac{\partial RE}{\partial \hat{y}\_3}
+\end{bmatrix}
+
+$$
+
+
+$$
+
+\Rightarrow J = \begin{bmatrix}
+\frac{-y_1}{\hat{y}\_1} \\
+\frac{-y_2}{\hat{y}\_2} \\
+\frac{-y_3}{\hat{y}\_3} \\
+\end{bmatrix} = -\frac{y}{\hat{y}}
+
+$$
 
 ```python
 def ristientropia_gradientti(
@@ -207,3 +253,4 @@ def ristientropia_gradientti(
 ) -> NDArray[np.float64]:
     return y / (y_hattu + 1e-100)
 ```
+$$
