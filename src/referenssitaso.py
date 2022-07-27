@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras import Sequential, layers
 from time import perf_counter
+import matplotlib.pyplot as plt
 
 print("*" * 70)
 print("*" + " MNIST-numerontunnistus ".center(68) + "*")
@@ -36,7 +37,13 @@ model.compile(
 # Neuroverkon kouluttaminen
 print("[3/4] Koulutetaan neuroverkkoa...")
 start = perf_counter()
-model.fit(train_images, train_labels, epochs=25, batch_size=100)
+history = model.fit(
+    train_images,
+    train_labels,
+    epochs=5,
+    batch_size=100,
+    validation_data=(test_images, test_labels),
+)
 end = perf_counter()
 print(f"Koulutus kesti {end - start:.3f} sekuntia.")
 
@@ -50,3 +57,19 @@ test_loss, test_acc = model.evaluate(test_images, test_labels)
 print(
     f"\nNeuroverkon tarkkuus testidatalla (n={test_labels.size}): {test_acc*100:.2f}%"
 )
+# summarize history for accuracy
+plt.plot(history.history["accuracy"])
+plt.plot(history.history["val_accuracy"])
+plt.title("model accuracy")
+plt.ylabel("accuracy")
+plt.xlabel("epoch")
+plt.legend(["train", "test"], loc="upper left")
+plt.show()
+# summarize history for loss
+plt.plot(history.history["loss"])
+plt.plot(history.history["val_loss"])
+plt.title("model loss")
+plt.ylabel("loss")
+plt.xlabel("epoch")
+plt.legend(["train", "test"], loc="upper left")
+plt.show()
