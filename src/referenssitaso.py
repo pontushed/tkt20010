@@ -9,7 +9,7 @@ print("*" + " MNIST-numerontunnistus ".center(68) + "*")
 print("*" + " Referenssitoteutus TensorFlow/Keras-kirjastolla ".center(68) + "*")
 print("*" * 70 + "\n")
 
-print("TensorFlow version:", tf.__version__)
+print("TensorFlow versio:", tf.__version__)
 
 # Ladataan MNIST-datasetti
 print("[1/4] Ladataan MNIST-datasetti...")
@@ -36,9 +36,9 @@ model.compile(
 # Neuroverkon kouluttaminen
 print("[3/4] Koulutetaan neuroverkkoa...")
 start = perf_counter()
-model.fit(train_images, train_labels, epochs=1, batch_size=128)
+model.fit(train_images, train_labels, epochs=25, batch_size=100)
 end = perf_counter()
-print(f"Koulutus kesti {end - start:.2f} sekuntia.")
+print(f"Koulutus kesti {end - start:.3f} sekuntia.")
 
 
 # Neuroverkon testaus

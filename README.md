@@ -23,3 +23,5 @@ Pontus Hedlund
 ### Viikkoraportit
 
 [Viikko 1](./viikkoraportit/viikko1.md)
+
+[Viikko 2](./viikkoraportit/viikko2.md)
