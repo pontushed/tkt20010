@@ -52,7 +52,7 @@ Välikerros: 512 neuronia, aktivointifunktio ReLU
 
 Laskutoimitus välikerroksessa:
 
-$W^{(1)} \in \mathbb{R}^{784\times512}, b^{(1)} \in \mathbb{R}^{512}, \phi^{(1)} = ReLU(x)$
+$W^{(1)} \in \mathbb{R}^{512\times784}, b^{(1)} \in \mathbb{R}^{512}, \phi^{(1)} = ReLU(x)$
 
 $o^{(1)}= \phi^{(1)}(W^{(1)}\cdot x + b^{(1)})$
 
@@ -60,7 +60,7 @@ Ulostulokerros: 10 neuronia, aktivointifunktio Softmax
 
 Laskutoimitus ulostulokerroksessa
 
-$W^{(2)} \in \mathbb{R}^{512\times 10}, b^{(2)} \in \mathbb{R}^{10}, \phi^{(2)} = softmax(x)$
+$W^{(2)} \in \mathbb{R}^{10\times 512}, b^{(2)} \in \mathbb{R}^{10}, \phi^{(2)} = softmax(x)$
 
 $o^{(2)} = \phi^{(2)}(W^{(2)}\cdot o^{(1)} + b^{(2)})$
 
@@ -71,16 +71,16 @@ tulee verkon ulostulokerroksen jälkeisen vektorin arvot olla mahdollisimman lä
 
 $$
 \hat{y} = \begin{bmatrix}
-0.0\\ % indeksi 0
-0.0\\ % indeksi 1
-0.0\\ % indeksi 2
-0.0\\ % indeksi 3
-0.0\\ % indeksi 4
-0.0\\ % indeksi 5
-0.0\\ % indeksi 6
-1.0\\ % indeksi 7
-0.0\\ % indeksi 8
-0.0  % indeksi 9
+0.0 \\
+0.0 \\
+0.0 \\
+0.0 \\
+0.0 \\
+0.0 \\
+0.0 \\
+1.0 \\
+0.0 \\
+0.0
 \end{bmatrix}
 $$
 
@@ -173,12 +173,16 @@ def softmax(x: NDArray[np.float64]) -> NDArray[np.float64]:
 
 Softmaxin derivaattafunktio:
 
-oletetaan, että $$\vec{y}=\begin{bmatrix}
+oletetaan, että
+
+$$
+\vec{y}=\begin{bmatrix}
 y_1 \\
 y_2 \\
 y_3 \\
 y_4
-\end{bmatrix}$$
+\end{bmatrix}
+$$
 
 $$
 softmax'(\vec{x}) = \vec{y} \odot \left ( \begin{bmatrix}
@@ -215,23 +219,23 @@ def ristientropia(y, y_hattu):
 
 **Ristientropian derivaattafunktio**
 
-Oletetaan, että $RE = f(\hat{y}_1, \hat{y}_2, \hat{y}_3)$
+Oletetaan, että $RE = f(\hat{y_1}, \hat{y_2}, \hat{y_3})$
 
 Tällöin gradientti on:
 
 $$
 J = \frac{\partial RE }{\partial (\hat{y}\_1, \hat{y}\_2, \hat{y}\_3)}=\begin{bmatrix}
-\frac{\partial RE}{\partial \hat{y}\_1} \\
-\frac{\partial RE}{\partial \hat{y}\_2} \\
-\frac{\partial RE}{\partial \hat{y}\_3}
+\frac{\partial RE}{\partial \hat{y_1}} \\
+\frac{\partial RE}{\partial \hat{y_2}} \\
+\frac{\partial RE}{\partial \hat{y_3}}
 \end{bmatrix}
 $$
 
 $$
 \Rightarrow J = \begin{bmatrix}
-\frac{-y_1}{\hat{y}\_1} \\
-\frac{-y_2}{\hat{y}\_2} \\
-\frac{-y_3}{\hat{y}\_3} \\
+\frac{-y_1}{\hat{y_1}} \\
+\frac{-y_2}{\hat{y_2}} \\
+\frac{-y_3}{\hat{y_3}} \\
 \end{bmatrix} = -\frac{y}{\hat{y}}
 $$
 

@@ -30,13 +30,13 @@ model = Sequential(
 
 # Neuroverkon rakennus
 model.compile(
-    optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
+    optimizer="RMSprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
 )
 
 # Neuroverkon kouluttaminen
 print("[3/4] Koulutetaan neuroverkkoa...")
 start = perf_counter()
-model.fit(train_images, train_labels, epochs=5, batch_size=128)
+model.fit(train_images, train_labels, epochs=1, batch_size=128)
 end = perf_counter()
 print(f"Koulutus kesti {end - start:.2f} sekuntia.")
 
