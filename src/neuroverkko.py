@@ -35,11 +35,10 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
 
         # Painokertoimien alustus
         # https://wandb.ai/sayakpaul/weight-initialization-tb/reports/Effects-of-Weight-Initialization-on-Neural-Networks--Vmlldzo2ODY0NA
-        # Edellisen mukaan paras arvo on asettaa ne jakauman mukaan, jossa arvot ovat välillä -y,y ja y = 1/sqrt(input_units)
+        # Edellisen mukaan paras arvo on asettaa ne jakauman mukaan,
+        # jossa arvot ovat välillä -y,y ja y = 1/sqrt(input_units)
         _y = 1 / np.sqrt(input_units)
-        self.weights = np.random.uniform(
-            low=-_y, high=_y, size=(input_units, output_units)
-        )
+        self.weights = np.random.uniform(low=-_y, high=_y, size=(input_units, output_units))
         self.biases = np.zeros(output_units)
 
     def forward(self, input: NDArray) -> NDArray:
@@ -68,16 +67,8 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         self.accumulator_b = 0.9 * self.accumulator_b + 0.1 * grad_biases**2
 
         # update weights and biases
-        self.weights = self.weights - (
-            self.learning_rate
-            * grad_weights
-            / (np.sqrt(self.accumulator_w) + self.epsilon)
-        )
-        self.biases = self.biases - (
-            self.learning_rate
-            * grad_biases
-            / (np.sqrt(self.accumulator_b) + self.epsilon)
-        )
+        self.weights = self.weights - (self.learning_rate * grad_weights / (np.sqrt(self.accumulator_w) + self.epsilon))
+        self.biases = self.biases - (self.learning_rate * grad_biases / (np.sqrt(self.accumulator_b) + self.epsilon))
 
         return grad_input
 
@@ -89,7 +80,9 @@ class ReLU(Kerros):
         pass
 
     def forward(self, input: NDArray) -> NDArray:
-        """Suorita ReLU-funktio alkioittain matriisille [alijoukko, muuttujat]"""
+
+        """Suorita ReLU-funktio alkioittain matriisille
+        [alijoukko, muuttujat]"""
         return np.maximum(0, input)
 
     def backward(self, input: NDArray, grad_output: NDArray) -> NDArray:
@@ -246,9 +239,7 @@ class Neuroverkko:
         for epoch in range(epochs):
             print(f"Epoch {epoch+1}/{epochs}")
             loss_values = []
-            for x_batch, y_batch in iterate_minibatches(
-                X_train, y_train, batch_size=batch_size, shuffle=True
-            ):
+            for x_batch, y_batch in iterate_minibatches(X_train, y_train, batch_size=batch_size, shuffle=True):
                 loss = self.train(x_batch, y_batch)
                 loss_values.append(loss)
 
@@ -258,9 +249,7 @@ class Neuroverkko:
             history["loss"].append(mean_loss)
             history["accuracy"].append(np.mean(self.predict(X_train) == y_train))
             if validation_data is not None:
-                val_acc, val_loss = self.evaluate(
-                    validation_data[0], validation_data[1], return_dict=True
-                ).values()
+                val_acc, val_loss = self.evaluate(validation_data[0], validation_data[1], return_dict=True).values()
                 history["val_accuracy"].append(val_acc)
                 history["val_loss"].append(val_loss)
             print(

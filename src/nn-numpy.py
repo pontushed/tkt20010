@@ -1,6 +1,5 @@
 # Oma toteutus numpy-kirjaston avulla
 from tensorflow.keras.datasets import mnist
-import numpy as np
 from time import perf_counter
 from neuroverkko import Neuroverkko, Tihea, ReLU
 import matplotlib.pyplot as plt
@@ -44,10 +43,9 @@ test_digits = test_images[0:10]
 predictions = neuroverkko.predict(test_digits)
 assert predictions[0] == test_labels[0]  # 7
 test_acc = neuroverkko.evaluate(test_images, test_labels)
-print(
-    f"\nNeuroverkon tarkkuus testidatalla (n={test_labels.size}): {test_acc*100:.2f}%"
-)
-# summarize history for accuracy
+print()
+print(f"Neuroverkon tarkkuus testidatalla (n={len(test_labels)}): {test_acc*100:.2f}%")
+# Tee kaavio tarkkuuden kehittymisestä
 plt.plot(history["accuracy"])
 plt.plot(history["val_accuracy"])
 plt.title("model accuracy")
@@ -55,7 +53,7 @@ plt.ylabel("accuracy")
 plt.xlabel("epoch")
 plt.legend(["train", "test"], loc="upper left")
 plt.show()
-# summarize history for loss
+# Tee kaavio hukka-arvon kehittymisestä
 plt.plot(history["loss"])
 plt.plot(history["val_loss"])
 plt.title("model loss")
