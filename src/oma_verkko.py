@@ -47,7 +47,7 @@ print()
 print(f"Neuroverkon tarkkuus testidatalla (n={len(y_testi)}): {tarkkuus*100:.2f}%")
 # Tee kaavio tarkkuuden kehittymisestä
 plt.plot(historia["tarkkuus"])
-plt.plot(historia["validaatiotarkkuus"])
+plt.plot(historia["validointitarkkuus"])
 plt.title("Mallin tarkkuus")
 plt.ylabel("tarkkuus")
 plt.xlabel("epookki")

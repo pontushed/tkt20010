@@ -34,29 +34,29 @@ class Kerros:
 class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
     """Tiheä kerros RMSProp-optimoijalla"""
 
-    def __init__(self, yksikot_data: NDArray, yksikot_ulos: NDArray) -> None:
+    def __init__(self, yksikot_sisaan: NDArray, yksikot_ulos: NDArray) -> None:
         self.rho = 0.9
         self.epsilon = 1e-7
-        self.keraajamatriisi_painot = np.zeros(shape=(yksikot_data, yksikot_ulos))
+        self.keraajamatriisi_painot = np.zeros(shape=(yksikot_sisaan, yksikot_ulos))
         self.keraajamatriisi_vakiot = np.zeros(yksikot_ulos)
         self.oppimisvauhti = 0.001
 
         # Painokertoimien alustus
         # https://wandb.ai/sayakpaul/weight-initialization-tb/reports/Effects-of-Weight-Initialization-on-Neural-verkkos--Vmlldzo2ODY0NA
         # Edellisen mukaan paras arvo on asettaa ne jakauman mukaan,
-        # jossa arvot ovat välillä -y,y ja y = 1/sqrt(yksikot_data)
-        _y = 1 / np.sqrt(yksikot_data)
-        self.painot = np.random.uniform(low=-_y, high=_y, size=(yksikot_data, yksikot_ulos))
+        # jossa arvot ovat välillä -y,y ja y = 1/sqrt(yksikot_sisaan)
+        _y = 1 / np.sqrt(yksikot_sisaan)
+        self.painot = np.random.uniform(low=-_y, high=_y, size=(yksikot_sisaan, yksikot_ulos))
         self.vakiot = np.zeros(yksikot_ulos)
 
     def eteenpain(self, data: NDArray) -> NDArray:
         """Laske kerroksen tulos
 
         Args:
-            data (NDArray): Kerrokselle syötettävä data
+            data (NDArray): Kerrokselle syötettävä data [n,x]
 
         Returns:
-            NDArray: Kerroksen tulos Wx + b
+            NDArray: Kerroksen tulos [n, k], jossa k = Wx + b
         """
         return np.matmul(data, self.painot) + self.vakiot
 
@@ -112,19 +112,22 @@ class ReLU(Kerros):
 
 def softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
     """Laske ristientropia softmax-funktioon"""
-    logits_for_answers = y_ulos[np.arange(len(y_ulos)), y_true]
-    ristientropia = -logits_for_answers + np.log(np.sum(np.exp(y_ulos), axis=-1))
+    logits = y_ulos[np.arange(len(y_ulos)), y_true]
+    ristientropia = -logits + np.log(np.sum(np.exp(y_ulos), axis=-1))
     return ristientropia
 
 
 def grad_softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
     """Laske gradientti softmax-ristientropia-funktioon"""
-    ones_for_answers = np.zeros_like(y_ulos)
-    ones_for_answers[np.arange(len(y_ulos)), y_true] = 1
 
+    # Tee apumatriisi, jossa oikean vastauksen kohdalla on 1, muuten 0
+    vastausmatriisi = np.zeros_like(y_ulos)
+    vastausmatriisi[np.arange(len(y_ulos)), y_true] = 1
+
+    # Laske gradientti softmax-ristientropia-funktioon
     softmax = np.exp(y_ulos) / np.exp(y_ulos).sum(axis=-1, keepdims=True)
 
-    return (-ones_for_answers + softmax) / y_ulos.shape[0]
+    return (-vastausmatriisi + softmax) / y_ulos.shape[0]
 
 
 class Neuroverkko:
@@ -203,7 +206,7 @@ class Neuroverkko:
             epookit (int): Kuinka monta kertaa koulutus suoritetaan.
             alijoukon_koko (int): Kuinka monta dataa koulutetaan kerralla.
 
-            validaatiodata (tuple): Tuple (X_val, y_val), jossa on validaatiodataa.
+            validaatiodata (tuple) [optional]: Tuple (X_val, y_val), jossa on validaatiodataa. Tätä käytetään koulutusprosessin seurantaan.
 
         Returns:
             historia (dict): Koulutushistoria.
