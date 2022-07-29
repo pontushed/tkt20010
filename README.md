@@ -1,5 +1,8 @@
 # MNIST-numerontunnistus
 
+[![Test on push](https://github.com/pontushed/tkt20010/actions/workflows/quality-check.yml/badge.svg)](https://github.com/pontushed/tkt20010/actions/workflows/quality-check.yml)
+[![codecov](https://codecov.io/gh/pontushed/tkt20010/branch/main/graph/badge.svg?token=FWBDBVXSV3)](https://codecov.io/gh/pontushed/tkt20010)
+
 Käsin kirjoitettujen numeroiden tunnistus neuroverkolla.
 
 Helsingin yliopiston aineopintojen harjoitustyö: Tietorakenteet ja algoritmit, loppukesä 2022
