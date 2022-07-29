@@ -25,9 +25,7 @@ class TestReLULayer(unittest.TestCase):
         self.grads = np.array([[-0.5, 0.5, 1, 0.5, 0.5]])
 
     def test_forward(self):
-        np.testing.assert_equal(self.layer.forward(self.x), self.y)
+        np.testing.assert_equal(self.layer.eteenpain(self.x), self.y)
 
     def test_backward(self):
-        np.testing.assert_equal(
-            self.layer.backward(self.x, self.grads), np.array([[0, 0, 1, 0.5, 0.5]])
-        )
+        np.testing.assert_equal(self.layer.taaksepain(self.x, self.grads), np.array([[0, 0, 1, 0.5, 0.5]]))
