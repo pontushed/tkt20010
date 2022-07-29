@@ -61,20 +61,18 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         return np.matmul(data, self.painot) + self.vakiot
 
     def taaksepain(self, data: NDArray, gradientti_ulos: NDArray) -> NDArray:
-        # compute d f / d x = d f / d dense * d dense / d x
-        # where d dense/ d x = painot transposed
+        # Laske gradientit edeltävälle kerrokselle
         grad_data = np.dot(gradientti_ulos, np.transpose(self.painot))
 
-        # compute gradient w.r.t. painot and vakiot
-        # shape of gradientti_ulos is (yksikot_ulos, yksikot_data)
+        # Laske painokertoimien gradientit
         grad_painot = np.transpose(np.dot(np.transpose(gradientti_ulos), data))
         grad_vakiot = np.sum(gradientti_ulos, axis=0)
 
-        # accumulate gradients
+        # Päivitä RMSprop-optimoijan kerääjämatriisit
         self.keraajamatriisi_painot = 0.9 * self.keraajamatriisi_painot + 0.1 * grad_painot**2
         self.keraajamatriisi_vakiot = 0.9 * self.keraajamatriisi_vakiot + 0.1 * grad_vakiot**2
 
-        # update painot and vakiot
+        # Päivitä tämän kerroksen painot ja vakiot
         self.painot = self.painot - (
             self.oppimisvauhti * grad_painot / (np.sqrt(self.keraajamatriisi_painot) + self.epsilon)
         )
@@ -82,6 +80,7 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
             self.oppimisvauhti * grad_vakiot / (np.sqrt(self.keraajamatriisi_vakiot) + self.epsilon)
         )
 
+        # Palauta gradientit edeltävälle kerrokselle
         return grad_data
 
 
