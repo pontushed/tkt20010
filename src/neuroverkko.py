@@ -8,7 +8,7 @@ np.random.seed(99)
 
 
 class Historia(TypedDict):
-    """malli.sovita() palauttaa tämän olion"""
+    """Neuroverkko.sovita() palauttaa tämän dict-olion"""
 
     hukka: List[float]
     tarkkuus: List[float]
@@ -52,8 +52,10 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
     def eteenpain(self, data: NDArray) -> NDArray:
         """Laske kerroksen tulos
 
-        Args:
-            data (NDArray): Kerrokselle syötettävä data [n,x]
+        Parametrit
+        ==========
+        data : NDArray
+            Kerrokselle syötettävä data [n,x]
 
         Returns:
             NDArray: Kerroksen tulos [n, k], jossa k = Wx + b
@@ -61,6 +63,16 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         return np.matmul(data, self.painot) + self.vakiot
 
     def taaksepain(self, data: NDArray, gradientti_ulos: NDArray) -> NDArray:
+        """Vastavirta-algoritmin osio kerrokselle
+
+
+        Args:
+            data (NDArray): Kerrokselle syötettävä data [n,x]
+            gradientti_ulos (NDArray): Kerrokselle syötettävä gradientti [n,k]
+
+        Returns:
+            NDArray: Kerroksen gradientti [n,x], jota käytetään syötteenä edeltävälle kerrokselle
+        """
         # Laske gradientit edeltävälle kerrokselle
         grad_data = np.dot(gradientti_ulos, np.transpose(self.painot))
 
