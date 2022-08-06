@@ -158,3 +158,5 @@ cython_debug/
 scratch/
 .coverage
 htmlcov
+
+neuroverkko.pkl
