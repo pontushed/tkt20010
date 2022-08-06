@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>MNIST-numerotunnistus</title>
+	<link rel="stylesheet" href="{{url_for('static', path='style.css')}}">
+</head>
+
+<body>
+		<h1>MNIST-numerotunnistus</h1>
+
+
+		<div class="centered">
+			<canvas id="canvas" width="280" height="280"></canvas>
+		</div>
+
+		<div class="centered">
+			<input type="button" class="myButton" value="Tunnista" onclick="predict()" style="">
+			<input type="button" class="myButton" value="Satunnainen" onclick="randomImage()" style="">
+			<input type="button" id="clearButton" value="Tyhjennä" onclick="reset()" style="">
+		</div>
+
+		<div class="centered">
+			<h1 id="result"></h1>
+		</div>
+		<div class="centered">
+			<canvas id="resultCanvas" width="28" height="28"></canvas>
+		</div>
+	  <script src="{{url_for('static',path='index.js')}}"></script>
+</body>
+</html>

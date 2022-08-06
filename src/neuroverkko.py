@@ -1,6 +1,7 @@
 from typing import Dict, Iterator, List, Tuple, TypedDict
 import numpy as np
 from numpy.typing import NDArray
+import pickle
 
 from tqdm import trange  # Näyttää hienon edistysmittarin
 
@@ -35,11 +36,13 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
     """Tiheä kerros RMSProp-optimoijalla"""
 
     def __init__(self, yksikot_sisaan: NDArray, yksikot_ulos: NDArray) -> None:
-        self.rho = 0.9
-        self.epsilon = 1e-7
+        # RMSProp-optimoijan parametrit
+        self.rho = 0.9  # Painotetun keskiarvon vaimennuskerroin
+        self.epsilon = 1e-7  # Pieni arvo jolla varmistetaan, ettei jaeta nollalla
+        self.oppimisvauhti = 0.001
+        # RMSProp-kerääjämatriisit painoille ja vakioille
         self.keraajamatriisi_painot = np.zeros(shape=(yksikot_sisaan, yksikot_ulos))
         self.keraajamatriisi_vakiot = np.zeros(yksikot_ulos)
-        self.oppimisvauhti = 0.001
 
         # Painokertoimien alustus
         # https://wandb.ai/sayakpaul/weight-initialization-tb/reports/Effects-of-Weight-Initialization-on-Neural-verkkos--Vmlldzo2ODY0NA
@@ -48,6 +51,9 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         _y = 1 / np.sqrt(yksikot_sisaan)
         self.painot = np.random.uniform(low=-_y, high=_y, size=(yksikot_sisaan, yksikot_ulos))
         self.vakiot = np.zeros(yksikot_ulos)
+
+    def __str__(self) -> str:
+        return f"Tiheä kerros ({self.keraajamatriisi_painot.shape[1]})"
 
     def eteenpain(self, data: NDArray) -> NDArray:
         """Laske kerroksen tulos
@@ -81,8 +87,8 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         grad_vakiot = np.sum(gradientti_ulos, axis=0)
 
         # Päivitä RMSprop-optimoijan kerääjämatriisit
-        self.keraajamatriisi_painot = 0.9 * self.keraajamatriisi_painot + 0.1 * grad_painot**2
-        self.keraajamatriisi_vakiot = 0.9 * self.keraajamatriisi_vakiot + 0.1 * grad_vakiot**2
+        self.keraajamatriisi_painot = self.rho * self.keraajamatriisi_painot + (1 - self.rho) * grad_painot**2
+        self.keraajamatriisi_vakiot = self.rho * self.keraajamatriisi_vakiot + (1 - self.rho) * grad_vakiot**2
 
         # Päivitä tämän kerroksen painot ja vakiot
         self.painot = self.painot - (
@@ -102,10 +108,11 @@ class ReLU(Kerros):
     def __init__(self) -> None:
         pass
 
-    def eteenpain(self, data: NDArray) -> NDArray:
+    def __str__(self) -> str:
+        return "ReLU-kerros"
 
-        """Suorita ReLU-funktio alkioittain matriisille
-        [alijoukko, muuttujat]"""
+    def eteenpain(self, data: NDArray) -> NDArray:
+        """Suorita ReLU-funktio alkioittain syötematriisille"""
         return np.maximum(0, data)
 
     def taaksepain(self, data: NDArray, gradientti_ulos: NDArray) -> NDArray:
@@ -122,6 +129,11 @@ class ReLU(Kerros):
         return gradientti_ulos * relu_grad
 
 
+def softmax(y):
+    """Softmax-funktio"""
+    return np.exp(y) / np.exp(y).sum(axis=-1, keepdims=True)
+
+
 def softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
     """Laske ristientropia softmax-funktioon"""
     logits = y_ulos[np.arange(len(y_ulos)), y_true]
@@ -133,13 +145,11 @@ def grad_softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
     """Laske gradientti softmax-ristientropia-funktioon"""
 
     # Tee apumatriisi, jossa oikean vastauksen kohdalla on 1, muuten 0
-    vastausmatriisi = np.zeros_like(y_ulos)
+    vastausmatriisi = np.zeros_like(y_ulos)  # (n,10)
     vastausmatriisi[np.arange(len(y_ulos)), y_true] = 1
 
     # Laske gradientti softmax-ristientropia-funktioon
-    softmax = np.exp(y_ulos) / np.exp(y_ulos).sum(axis=-1, keepdims=True)
-
-    return (-vastausmatriisi + softmax) / y_ulos.shape[0]
+    return (-vastausmatriisi + softmax(y_ulos)) / y_ulos.shape[0]
 
 
 class Neuroverkko:
@@ -149,13 +159,26 @@ class Neuroverkko:
         verkko(list): Neuroverkon arkkitehtuuri
     """
 
-    def __init__(self, verkko: list[Kerros]) -> None:
+    def __init__(self, verkko: list[Kerros] | None) -> None:
         """Konstruktori
 
         Args:
             verkko (list[Kerros]): Neuroverkon arkkitehtuuri
         """
         self.verkko = verkko
+
+    def __str__(self):
+        return " -> ".join([str(kerros) for kerros in self.verkko])
+
+    def lataa(self, tiedosto: str) -> None:
+        """Lataa kerrokset tiedostosta"""
+        with open(tiedosto, "rb") as f:
+            self.verkko = pickle.load(f)
+
+    def tallenna(self, tiedosto: str) -> None:
+        """Tallenna neuroverkko tiedostoon"""
+        with open(tiedosto, "wb") as f:
+            pickle.dump(self.verkko, f)
 
     def eteenpain(self, X: NDArray) -> List[NDArray]:
         """
@@ -170,7 +193,7 @@ class Neuroverkko:
         assert len(aktivoinnit) == len(self.verkko)
         return aktivoinnit
 
-    def ennusta(self, X: NDArray) -> NDArray:
+    def ennusta(self, X: NDArray, todennakoisyydet: bool = False) -> NDArray:
         """
         Laske neuroverkon päättelemät arvot datalle.
 
@@ -178,6 +201,8 @@ class Neuroverkko:
             X (NDArray): Data, jonka päättelemät arvot lasketaan.
         """
         logits = self.eteenpain(X)[-1]
+        if todennakoisyydet:
+            return softmax(logits)
         return logits.argmax(axis=-1)
 
     def kouluta(self, X: NDArray, y: NDArray) -> float:
@@ -221,14 +246,7 @@ class Neuroverkko:
             validaatiodata (tuple) [optional]: Tuple (X_val, y_val), jossa on validaatiodataa. Tätä käytetään koulutusprosessin seurantaan.
 
         Returns:
-            historia (dict): Koulutushistoria.
-                  Tämä on muotoa:
-                  {
-                    'hukka': [],
-                    'accuracy': [],
-                    'validointihukka': [],
-                    'validointitarkkuusuracy': []
-                }
+            historia (Historia): Koulutushistoria.
         """
 
         def iteroi_alijoukot(
@@ -273,7 +291,7 @@ class Neuroverkko:
 
             hukka_keskiarvo = np.mean(hukka_arvot)
             hukka_maksimi = np.max(hukka_arvot)
-            hukka_mini = np.min(hukka_arvot)
+            hukka_minimi = np.min(hukka_arvot)
             historia["hukka"].append(hukka_keskiarvo)
             historia["tarkkuus"].append(np.mean(self.ennusta(X_koulutus) == y_koulutus))
             if validaatiodata is not None:
@@ -283,7 +301,7 @@ class Neuroverkko:
                 historia["validointitarkkuus"].append(validointitarkkuus)
                 historia["validointihukka"].append(validointihukka)
             print(
-                f"Minimi hukka: {hukka_mini:.4f}, Maksimi hukka: {hukka_maksimi:.4f}, Keskimääräinen hukka: {hukka_keskiarvo:.4f}, Tarkkuus: {historia['tarkkuus'][-1]:.4f}"
+                f"Minimi hukka: {hukka_minimi:.4f}, Maksimi hukka: {hukka_maksimi:.4f}, Keskimääräinen hukka: {hukka_keskiarvo:.4f}, Tarkkuus: {historia['tarkkuus'][-1]:.4f}"
             )
         return historia
 

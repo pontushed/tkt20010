@@ -61,3 +61,6 @@ plt.ylabel("hukka")
 plt.xlabel("epookki")
 plt.legend(["koulutus", "testi"], loc="upper left")
 plt.show()
+
+print("Tallennetaan verkko...")
+neuroverkko.tallenna("neuroverkko.pkl")
