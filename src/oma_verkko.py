@@ -30,7 +30,7 @@ start = perf_counter()
 historia = neuroverkko.sovita(
     X_koulutus,
     y_koulutus,
-    epookit=25,
+    epookit=10,
     alijoukon_koko=100,
     validaatiodata=(X_testi, y_testi),
 )
