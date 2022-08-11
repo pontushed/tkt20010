@@ -36,9 +36,7 @@ model = Sequential(
 VERKKO = [Tihea(train_images.shape[1], 512), ReLU(), Tihea(512, 10)]
 
 # Neuroverkon rakennus
-model.compile(
-    optimizer="RMSprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
-)
+model.compile(optimizer="RMSprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 neuroverkko = Neuroverkko(VERKKO)
 
 
@@ -56,12 +54,12 @@ end = perf_counter()
 print(f"Tensorflown koulutus kesti {end - start:.3f} sekuntia.")
 
 start = perf_counter()
-historia = neuroverkko.fit(
+historia = neuroverkko.sovita(
     train_images,
     train_labels,
-    epochs=epochs,
-    batch_size=batch_size,
-    validation_data=(test_images, test_labels),
+    epookit=epochs,
+    alijoukon_koko=batch_size,
+    validaatiodata=(test_images, test_labels),
 )
 end = perf_counter()
 print(f"Oman neuroverkon koulutus kesti {end - start:.5f} sekuntia.")
@@ -71,8 +69,8 @@ print("[4/4] Tulostetaan yhteenveto...")
 # summarize history for accuracy
 plt.plot(history.history["accuracy"])
 plt.plot(history.history["val_accuracy"])
-plt.plot(historia["accuracy"])
-plt.plot(historia["val_accuracy"])
+plt.plot(historia["tarkkuus"])
+plt.plot(historia["validointitarkkuus"])
 plt.title("model accuracy")
 plt.ylabel("accuracy")
 plt.xlabel("epoch")
@@ -81,8 +79,8 @@ plt.show()
 # summarize history for loss
 plt.plot(history.history["loss"])
 plt.plot(history.history["val_loss"])
-plt.plot(historia["loss"])
-plt.plot(historia["val_loss"])
+plt.plot(historia["hukka"])
+plt.plot(historia["validointihukka"])
 plt.title("model loss")
 plt.ylabel("loss")
 plt.xlabel("epoch")
