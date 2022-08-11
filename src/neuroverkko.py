@@ -87,8 +87,8 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
         grad_vakiot = np.sum(gradientti_ulos, axis=0)
 
         # Päivitä RMSprop-optimoijan kerääjämatriisit
-        self.keraajamatriisi_painot = self.rho * self.keraajamatriisi_painot + (1 - self.rho) * grad_painot**2
-        self.keraajamatriisi_vakiot = self.rho * self.keraajamatriisi_vakiot + (1 - self.rho) * grad_vakiot**2
+        self.keraajamatriisi_painot = self.rho * self.keraajamatriisi_painot + (1 - self.rho) * grad_painot**2.0
+        self.keraajamatriisi_vakiot = self.rho * self.keraajamatriisi_vakiot + (1 - self.rho) * grad_vakiot**2.0
 
         # Päivitä tämän kerroksen painot ja vakiot
         self.painot = self.painot - (
@@ -131,7 +131,8 @@ class ReLU(Kerros):
 
 def softmax(y):
     """Softmax-funktio"""
-    return np.exp(y) / np.exp(y).sum(axis=-1, keepdims=True)
+    e_y = np.exp(y - np.max(y, axis=-1, keepdims=True))
+    return e_y / e_y.sum(axis=-1, keepdims=True)
 
 
 def softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
