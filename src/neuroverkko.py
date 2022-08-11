@@ -186,13 +186,14 @@ class Neuroverkko:
         Laske kaikkien kerrosten aktivoinnit järjestyksessä.
         Palauttaa listan kerroksien aktivoituja dataa.
         """
-        aktivoinnit = []
+        aktivoinnit_lista = []
+        aktivoinnit = X
         for i in range(len(self.verkko)):
-            aktivoinnit.append(self.verkko[i].eteenpain(X))
-            X = self.verkko[i].eteenpain(X)
+            aktivoinnit = self.verkko[i].eteenpain(aktivoinnit)
+            aktivoinnit_lista.append(aktivoinnit)
 
-        assert len(aktivoinnit) == len(self.verkko)
-        return aktivoinnit
+        assert len(aktivoinnit_lista) == len(self.verkko)
+        return aktivoinnit_lista
 
     def ennusta(self, X: NDArray, todennakoisyydet: bool = False) -> NDArray:
         """
@@ -220,10 +221,9 @@ class Neuroverkko:
         hukka = softmax_ristientropia(y, y_ulos)
         hukka_grad = grad_softmax_ristientropia(y, y_ulos)
 
-        for i in range(1, len(self.verkko)):
-            hukka_grad = self.verkko[len(self.verkko) - i].taaksepain(
-                kerrosten_aktivoinnit[len(self.verkko) - i - 1], hukka_grad
-            )
+        for i in range(len(self.verkko), 1, -1):
+            hukka_grad = self.verkko[i - 1].taaksepain(kerrosten_aktivoinnit[i - 2], hukka_grad)
+        self.verkko[0].taaksepain(X, hukka_grad)
 
         return np.mean(hukka)
 
