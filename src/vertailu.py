@@ -14,7 +14,7 @@ print("*" * 70 + "\n")
 print("TensorFlow versio:", tf.__version__)
 
 # Parametrit
-epochs = 5
+epochs = 10
 batch_size = 100
 
 # Ladataan MNIST-datasetti
@@ -71,18 +71,18 @@ plt.plot(history.history["accuracy"])
 plt.plot(history.history["val_accuracy"])
 plt.plot(historia["tarkkuus"])
 plt.plot(historia["validointitarkkuus"])
-plt.title("model accuracy")
+plt.title("Mallin tarkkuus")
 plt.ylabel("accuracy")
 plt.xlabel("epoch")
-plt.legend(["tf_train", "tf_test", "oma_train", "oma_test"], loc="upper left")
+plt.legend(["tf_koulutus", "tf_testi", "oma_koulutus", "oma_testi"], loc="upper left")
 plt.show()
 # summarize history for loss
 plt.plot(history.history["loss"])
 plt.plot(history.history["val_loss"])
 plt.plot(historia["hukka"])
 plt.plot(historia["validointihukka"])
-plt.title("model loss")
+plt.title("Mallin hukkafunktion kehitys")
 plt.ylabel("loss")
 plt.xlabel("epoch")
-plt.legend(["tf_train", "tf_test", "oma_train", "oma_test"], loc="upper left")
+plt.legend(["tf_koulutus", "tf_testi", "oma_koulutus", "oma_testi"], loc="upper left")
 plt.show()
