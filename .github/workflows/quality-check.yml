@@ -55,5 +55,5 @@ jobs:
         run: |
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
-          coverage xml
+          poetry run coverage xml
           ./codecov -t ${CODECOV_TOKEN}
