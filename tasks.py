@@ -6,7 +6,7 @@ def kouluta(ctx):
     ctx.run("python3 src/oma_verkko.py", pty=True)
 
 
-@task()
+@task
 def app(ctx):
     ctx.run("uvicorn --app-dir ./src main:app", pty=True)
 

@@ -46,3 +46,15 @@ Piirrä numero hiirellä mustaan laatikkoon ja paina "Tunnista". Voit tyhjentä�
 Valitse "Satunnainen". Ohjelma valitsee MNIST-tietokannan testidatasta 10000 esimerkin joukosta numeron testattavaksi.
 
 ![webapp3](webapp3.png)
+
+### Testaus
+
+**Testien ajo**
+
+`poetry run invoke test`
+
+**Testien koodikattavuuden kerääminen ja HTML-raportin tekeminen**
+
+`poetry run invoke coverage-html`
+
+Tämän jälkeen kattavuusraportti löytyy projektin juuren alta `./htmlcov/index.html`-tiedostosta.

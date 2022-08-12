@@ -228,12 +228,7 @@ class Neuroverkko:
         return np.mean(hukka)
 
     def sovita(
-        self,
-        X_koulutus: NDArray,
-        y_koulutus: NDArray,
-        epookit=10,
-        alijoukon_koko=32,
-        validaatiodata=None,
+        self, X_koulutus: NDArray, y_koulutus: NDArray, epookit=10, alijoukon_koko=32, validaatiodata=None, sekoita=True
     ) -> Historia:
         """
         Kouluta neuroverkko.
@@ -251,7 +246,7 @@ class Neuroverkko:
         """
 
         def iteroi_alijoukot(
-            data: NDArray, vastaukset: NDArray, alijoukon_koko: int, sekoita=False
+            data: NDArray, vastaukset: NDArray, alijoukon_koko: int, sekoita: bool
         ) -> Iterator[Tuple[NDArray, NDArray]]:
             """Iteroija joka tuottaa alijoukot
 
@@ -285,7 +280,7 @@ class Neuroverkko:
             print(f"Epookki {epookki+1}/{epookit}")
             hukka_arvot = []
             for x_alijoukko, y_alijoukko in iteroi_alijoukot(
-                X_koulutus, y_koulutus, alijoukon_koko=alijoukon_koko, sekoita=True
+                X_koulutus, y_koulutus, alijoukon_koko=alijoukon_koko, sekoita=sekoita
             ):
                 hukka = self.kouluta(x_alijoukko, y_alijoukko)
                 hukka_arvot.append(hukka)
