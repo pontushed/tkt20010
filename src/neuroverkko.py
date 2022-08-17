@@ -110,15 +110,19 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
 class ReLU(Kerros):
     """ReLU-kerros suorittaa ReLU-aktivointifunktion syötteelle."""
 
+    # Leaky ReLU-implementaatio, asetetaan alpha > 0.0
+    # Perus ReLU-funktiolla alpha == 0.0
+    alpha: float
+
     def __init__(self) -> None:
-        pass
+        self.alpha = 0.01
 
     def __str__(self) -> str:
         return "ReLU-kerros"
 
     def eteenpain(self, data: NDArray) -> NDArray:
         """Suorita ReLU-funktio alkioittain syötematriisille"""
-        return np.maximum(0, data)
+        return np.where(data > 0, data, data * self.alpha)
 
     def taaksepain(self, data: NDArray, gradientti_ulos: NDArray) -> NDArray:
         """Laske gradientti ReLU-kerrokselle
@@ -130,7 +134,7 @@ class ReLU(Kerros):
         Returns:
             NDArray: gradientit matriisille [alijoukko, muuttujat], johon on laskettu ReLU-funktion gradientti
         """
-        relu_grad = data > 0
+        relu_grad = np.where(data > 0, 1, self.alpha)
         return gradientti_ulos * relu_grad
 
 
