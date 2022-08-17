@@ -52,6 +52,8 @@ history = model.fit(
 )
 end = perf_counter()
 print(f"Tensorflown koulutus kesti {end - start:.3f} sekuntia.")
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f"\nTF-Neuroverkon tarkkuus testidatalla (n={len(test_images)}): {test_acc*100:.2f}%")
 
 start = perf_counter()
 historia = neuroverkko.sovita(
@@ -63,6 +65,8 @@ historia = neuroverkko.sovita(
 )
 end = perf_counter()
 print(f"Oman neuroverkon koulutus kesti {end - start:.5f} sekuntia.")
+tarkkuus = neuroverkko.evaluoi(test_images, test_labels)
+print(f"\nOman neuroverkon tarkkuus testidatalla (n={len(test_images)}): {tarkkuus*100:.2f}%")
 
 # Tulostetaan yhteenveto
 print("[4/4] Tulostetaan yhteenveto...")

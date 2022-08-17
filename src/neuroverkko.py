@@ -80,11 +80,16 @@ class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
             NDArray: Kerroksen gradientti [n,x], jota käytetään syötteenä edeltävälle kerrokselle
         """
         # Laske gradientit edeltävälle kerrokselle
-        grad_data = np.dot(gradientti_ulos, np.transpose(self.painot))
+        # grad_data = np.dot(gradientti_ulos, np.transpose(self.painot))
+        grad_data = np.matmul(gradientti_ulos, np.transpose(self.painot))
 
         # Laske painokertoimien gradientit
-        grad_painot = np.transpose(np.dot(np.transpose(gradientti_ulos), data))
-        grad_vakiot = np.sum(gradientti_ulos, axis=0)
+        # grad_painot = np.transpose(np.dot(np.transpose(gradientti_ulos), data))
+        grad_painot = np.transpose(np.matmul(np.transpose(gradientti_ulos), data))
+
+        # Käytetään np.einsum-metodia, joka on tässä hieman nopeampi kuin np.sum
+        # grad_vakiot = np.sum(gradientti_ulos, axis=0)
+        grad_vakiot = np.einsum("ij->j", gradientti_ulos)
 
         # Päivitä RMSprop-optimoijan kerääjämatriisit
         self.keraajamatriisi_painot = self.rho * self.keraajamatriisi_painot + (1 - self.rho) * grad_painot**2.0

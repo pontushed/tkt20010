@@ -32,3 +32,5 @@ Pontus Hedlund
 [Viikko 3](./viikkoraportit/viikko3.md)
 
 [Viikko 4](./viikkoraportit/viikko4.md)
+
+[Viikko 5](./viikkoraportit/viikko5.md)
