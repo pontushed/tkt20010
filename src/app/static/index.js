@@ -75,10 +75,7 @@ function randomImage() {
       );
       img.src = 'data:image/png;base64,' + data.kuva;
       document.getElementById('result').innerText =
-        'Tunnistettu numero: ' +
-        data.tunnistus +
-        ', oikea numero: ' +
-        data.arvo;
+        'Tunnistettu numero: ' + data.tunnistus + 'Oikea numero: ' + data.arvo;
     });
 }
 
