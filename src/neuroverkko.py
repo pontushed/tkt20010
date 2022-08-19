@@ -114,8 +114,13 @@ class ReLU(Kerros):
     # Perus ReLU-funktiolla alpha == 0.0
     alpha: float
 
-    def __init__(self) -> None:
-        self.alpha = 0.01
+    def __init__(self, alpha=0.0) -> None:
+        """Konstruktori
+
+        Args:
+            alpha (float, optional): Leaky ReLUn alpha-arvo. Oltava >= 0. Oletusarvo to 0.0, jolloin kyseessä normaali ReLU.
+        """
+        self.alpha = alpha
 
     def __str__(self) -> str:
         return "ReLU-kerros"
