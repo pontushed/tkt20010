@@ -34,7 +34,9 @@ Kaavioista huomaa pari asiaa:
 ## Ristiinvalidointi
 
 Ajamalla `vertailu-ristiinvalidointi.py`-skriptin voidaan verrata omaa toteutusta ja keras-toteutusta käyttäen ristiinvalidointia K-osoituksella. Mallin koulutus tehdään 60000 esimerkillä ja testaus 10000 esimerkillä, joka on vakiomäärä MNIST-datasetillä.
-Ennustuskyky arvoidaan arvolla k=5, jossa ensin yhdistetään alkuperäinen opetus- ja testausdata, josta sitten erotetaan testidata viidestä eri kohdasta ja koulutetaan mallit uudelleen ja verrataan tuloksia. Lopuksi otetaan keskiarvo testidatalla saavutetusta tarkkuudesta.
+Ennustuskyky arvoidaan arvolla k=5, jossa ensin yhdistetään alkuperäinen koulutus- ja testausdata, josta sitten erotetaan testidata viidestä eri kohdasta ja koulutetaan mallit uudelleen ja verrataan tuloksia. Lopuksi otetaan keskiarvo testidatalla saavutetusta tarkkuudesta. Olen käyttänyt samaa 6000/1000-jakoa, joten aivan kaikkea ei tehdä ristiin, mutta tulosten perusteella ei suurta eroa synny. Ajamalla ristiinvalidoinnin arvolla k=7 saataisiin koko datasetti käytyä läpi koulutus- ja testausmielessä.
+
+![ristiinvalidointi](./ristiinvalidointi.png)
 
 Kouluttamalla neuroverkkoja 10 epookilla viisi kertaa ristiinvalidoinnilla, oli tulokset seuraavat omalla koneellani:
 
