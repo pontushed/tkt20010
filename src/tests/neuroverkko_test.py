@@ -1,8 +1,20 @@
 import unittest
-import neuroverkko as nv
+import verkko.neuroverkko as nv
+import utils.utils as utils
 import numpy as np
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 import os
+
+
+class TestSoftmax(unittest.TestCase):
+    """Softmax-funktio"""
+
+    def test_softmax(self):
+        x = np.array([[1, 3, 2]])
+        y = np.array([[0.09003057, 0.66524096, 0.24472847]])
+        neuroverkko = nv.Neuroverkko(None)
+        np.testing.assert_array_almost_equal(neuroverkko.softmax(x), y)
+        np.testing.assert_almost_equal(np.sum(neuroverkko.softmax(x)), 1)
 
 
 class TestCrossEntropy(unittest.TestCase):
@@ -12,8 +24,9 @@ class TestCrossEntropy(unittest.TestCase):
         self.y_true = np.array([1, 2])
         self.y_pred = np.array([[0.05, 0.95, 0], [0.1, 0.8, 0.1]])
         self.keras_loss = SparseCategoricalCrossentropy(from_logits=True)
-        self.my_loss = nv.softmax_ristientropia
-        self.my_loss_grad = nv.grad_softmax_ristientropia
+        self.neuroverkko = nv.Neuroverkko(None)
+        self.my_loss = self.neuroverkko.softmax_ristientropia
+        self.my_loss_grad = self.neuroverkko.grad_softmax_ristientropia
 
     def test_ristientropia(self):
         expected_result = self.keras_loss(self.y_true, self.y_pred).numpy()
@@ -41,16 +54,6 @@ class TestReLULayer(unittest.TestCase):
 
     def test_description(self):
         self.assertEqual(str(self.layer), "ReLU-kerros")
-
-
-class TestSoftmax(unittest.TestCase):
-    """Softmax-funktio"""
-
-    def test_softmax(self):
-        x = np.array([[1, 3, 2]])
-        y = np.array([[0.09003057, 0.66524096, 0.24472847]])
-        np.testing.assert_array_almost_equal(nv.softmax(x), y)
-        np.testing.assert_almost_equal(np.sum(nv.softmax(x)), 1)
 
 
 class TestKerros(unittest.TestCase):
@@ -105,8 +108,6 @@ class TestNeuroverkko(unittest.TestCase):
     def test_verkko(self):
         self.assertIsInstance(self.verkko, nv.Neuroverkko)
         self.assertEqual(str(self.verkko), "Tiheä kerros (2) -> ReLU-kerros")
-        self.assertTrue("lataa" in dir(self.verkko))
-        self.assertTrue("tallenna" in dir(self.verkko))
         self.assertTrue("eteenpain" in dir(self.verkko))
         self.assertTrue("ennusta" in dir(self.verkko))
         self.assertTrue("kouluta" in dir(self.verkko))
@@ -116,10 +117,10 @@ class TestNeuroverkko(unittest.TestCase):
     def test_tallenna_ja_lataa(self):
         self.verkko.verkko[0].painot = np.array([[1, 0], [0, 1]])
         self.verkko.verkko[0].vakiot = np.array([3, 4])
-        self.verkko.tallenna("testi.pkl")
+        utils.tallenna_malli(self.verkko.verkko, "testi.pkl")
         self.verkko.verkko[0].painot = np.array([[0, 1], [1, 0]])
         self.verkko.verkko[0].vakiot = np.array([0, 0])
-        self.verkko.lataa("testi.pkl")
+        self.verkko.verkko = utils.lataa_malli("testi.pkl")
         np.testing.assert_equal(self.verkko.verkko[0].painot, np.array([[1, 0], [0, 1]]))
         np.testing.assert_equal(self.verkko.verkko[0].vakiot, np.array([3, 4]))
         os.remove("testi.pkl")
@@ -152,7 +153,7 @@ class TestNeuroverkko(unittest.TestCase):
         self.verkko.verkko[0].vakiot = np.array([3, 4])
         self.verkko.verkko[1].painot = np.array([[1, 0], [0, 1]])
         self.verkko.verkko[1].vakiot = np.array([3, 4])
-        predictions = self.verkko.evaluoi(self.X, np.array([1, 1]), return_dict=True)
+        predictions = self.verkko.evaluoi(self.X, np.array([1, 1]), palauta_dict=True)
         self.assertAlmostEqual(predictions["hukka"], 0.13, places=2)
         self.assertEqual(predictions["tarkkuus"], 1.0)
 

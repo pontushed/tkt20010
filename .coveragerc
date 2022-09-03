@@ -1,4 +1,4 @@
 [run]
 # source = src, scratch
 # omit = src/tests/**,src/index.py, scratch/tests/**
-include = src/neuroverkko.py
+include = src/verkko/neuroverkko.py

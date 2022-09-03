@@ -1,7 +1,6 @@
 from typing import Dict, Iterator, List, Tuple, TypedDict
 import numpy as np
 from numpy.typing import NDArray
-import pickle
 
 from tqdm import trange  # Näyttää hienon edistysmittarin
 
@@ -35,11 +34,21 @@ class Kerros:
 class Tihea(Kerros):  # Vastaa TensorFlow/Keras-kirjastosta kerrosta "Dense"
     """Tiheä kerros RMSProp-optimoijalla"""
 
-    def __init__(self, yksikot_sisaan: NDArray, yksikot_ulos: NDArray) -> None:
-        # RMSProp-optimoijan parametrit
-        self.rho = 0.9  # Painotetun keskiarvon vaimennuskerroin
+    def __init__(self, yksikot_sisaan: int, yksikot_ulos: int, rho=0.9, oppimisvauhti=0.001) -> None:
+        """Luokan konstruktori
+
+        Args:
+            yksikot_sisaan (int): Kuinka monta yksikköä kerrokselle syötetään
+            yksikot_ulos (int): Kuinka monta yksikköä kerrokselta tulee ulos = neuronien määrä
+            rho (float, optional): RMSProp-optimoijan rho-parametri. Oletusarvo 0.9.
+            oppimisvauhti (float, optional): RMSProp-optimoijan oppimisvauhti-parametri. Oletusarvo 0.001.
+        """
+
+        # RMSProp-optimoijan parametrit (empiirisesti valittu)
+        self.rho = rho  # Painotetun keskiarvon vaimennuskerroin, oletus 0.9
         self.epsilon = 1e-7  # Pieni arvo jolla varmistetaan, ettei jaeta nollalla
-        self.oppimisvauhti = 0.001
+        self.oppimisvauhti = oppimisvauhti  # Oletus 0.001
+
         # RMSProp-kerääjämatriisit painoille ja vakioille
         self.keraajamatriisi_painot = np.zeros(shape=(yksikot_sisaan, yksikot_ulos))
         self.keraajamatriisi_vakiot = np.zeros(yksikot_ulos)
@@ -143,57 +152,44 @@ class ReLU(Kerros):
         return gradientti_ulos * relu_grad
 
 
-def softmax(y):
-    """Softmax-funktio"""
-    e_y = np.exp(y - np.max(y, axis=-1, keepdims=True))
-    return e_y / e_y.sum(axis=-1, keepdims=True)
-
-
-def softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
-    """Laske ristientropia softmax-funktioon"""
-    logits = y_ulos[np.arange(len(y_ulos)), y_true]
-    ristientropia = -logits + np.log(np.sum(np.exp(y_ulos), axis=-1))
-    return ristientropia
-
-
-def grad_softmax_ristientropia(y_true: NDArray, y_ulos: NDArray) -> NDArray:
-    """Laske gradientti softmax-ristientropia-funktioon"""
-
-    # Tee apumatriisi, jossa oikean vastauksen kohdalla on 1, muuten 0
-    vastausmatriisi = np.zeros_like(y_ulos)  # (n,10)
-    vastausmatriisi[np.arange(len(y_ulos)), y_true] = 1
-
-    # Laske gradientti softmax-ristientropia-funktioon
-    return (-vastausmatriisi + softmax(y_ulos)) / y_ulos.shape[0]
-
-
 class Neuroverkko:
     """Neuroverkko RMSProp-optimoijalla
 
     Attributes:
-        verkko(list): Neuroverkon arkkitehtuuri
+        verkko(List): Neuroverkon arkkitehtuuri
     """
 
-    def __init__(self, verkko: list[Kerros] | None) -> None:
+    def __init__(self, verkko: List[Kerros]) -> None:
         """Konstruktori
 
         Args:
-            verkko (list[Kerros]): Neuroverkon arkkitehtuuri
+            verkko (List[Kerros]): Neuroverkon arkkitehtuuri
         """
         self.verkko = verkko
 
     def __str__(self):
         return " -> ".join([str(kerros) for kerros in self.verkko])
 
-    def lataa(self, tiedosto: str) -> None:
-        """Lataa kerrokset tiedostosta"""
-        with open(tiedosto, "rb") as f:
-            self.verkko = pickle.load(f)
+    def softmax(self, y):
+        """Softmax-funktio"""
+        e_y = np.exp(y - np.max(y, axis=-1, keepdims=True))
+        return e_y / e_y.sum(axis=-1, keepdims=True)
 
-    def tallenna(self, tiedosto: str) -> None:
-        """Tallenna neuroverkko tiedostoon"""
-        with open(tiedosto, "wb") as f:
-            pickle.dump(self.verkko, f)
+    def softmax_ristientropia(self, y_true: NDArray, y_ulos: NDArray) -> NDArray:
+        """Laske ristientropia softmax-funktioon"""
+        logits = y_ulos[np.arange(len(y_ulos)), y_true]
+        ristientropia = -logits + np.log(np.sum(np.exp(y_ulos), axis=-1))
+        return ristientropia
+
+    def grad_softmax_ristientropia(self, y_true: NDArray, y_ulos: NDArray) -> NDArray:
+        """Laske gradientti softmax-ristientropia-funktioon"""
+
+        # Tee apumatriisi, jossa oikean vastauksen kohdalla on 1, muuten 0
+        vastausmatriisi = np.zeros_like(y_ulos)  # (n,10)
+        vastausmatriisi[np.arange(len(y_ulos)), y_true] = 1
+
+        # Laske gradientti softmax-ristientropia-funktioon
+        return (-vastausmatriisi + self.softmax(y_ulos)) / y_ulos.shape[0]
 
     def eteenpain(self, X: NDArray) -> List[NDArray]:
         """
@@ -218,7 +214,7 @@ class Neuroverkko:
         """
         logits = self.eteenpain(X)[-1]
         if todennakoisyydet:
-            return softmax(logits)
+            return self.softmax(logits)
         return logits.argmax(axis=-1)
 
     def kouluta(self, X: NDArray, y: NDArray) -> float:
@@ -231,15 +227,55 @@ class Neuroverkko:
         kerrosten_aktivoinnit = self.eteenpain(X)
         y_ulos = kerrosten_aktivoinnit[-1]
 
-        # Compute the hukka and the initial gradient
-        hukka = softmax_ristientropia(y, y_ulos)
-        hukka_grad = grad_softmax_ristientropia(y, y_ulos)
+        # Laske hukka ja ensimmäinen gradientti
+        hukka = self.softmax_ristientropia(y, y_ulos)
+        hukka_grad = self.grad_softmax_ristientropia(y, y_ulos)
 
         for i in range(len(self.verkko), 1, -1):
             hukka_grad = self.verkko[i - 1].taaksepain(kerrosten_aktivoinnit[i - 2], hukka_grad)
         self.verkko[0].taaksepain(X, hukka_grad)
 
         return np.mean(hukka)
+
+    def iteroi_alijoukot(
+        self, data: NDArray, vastaukset: NDArray, alijoukon_koko: int, sekoita: bool
+    ) -> Iterator[Tuple[NDArray, NDArray]]:
+        """Iteroija joka tuottaa alijoukot
+
+        Args:
+            data (NDArray): data
+            vastaukset (NDArray): vastaukset
+            alijoukon_koko (int): alijoukon koko
+            sekoita (bool, optional): Tehdäänkö satunnaisotanta. Defaults to False.
+
+        Yields:
+            Iterator[Tuple[NDArray, NDArray]]: Alijoukko (Data, vastaukset)
+        """
+        assert len(data) == len(vastaukset)
+        if sekoita:
+            indeksit = np.random.permutation(len(data))
+        for alkuindeksi in trange(0, len(data) - alijoukon_koko + 1, alijoukon_koko):
+            if sekoita:
+                otos = indeksit[alkuindeksi : alkuindeksi + alijoukon_koko]
+            else:
+                otos = slice(alkuindeksi, alkuindeksi + alijoukon_koko)
+            yield data[otos], vastaukset[otos]
+
+    def kouluta_alijoukot(
+        self, X_koulutus, y_koulutus, alijoukon_koko: int = 32, sekoita: bool = True
+    ) -> Tuple[float, float, float]:
+        """Kouluttaa verkkoa alijoukoilla ja palauttaa hukka-arvot"""
+        hukka_arvot = []
+        for x_alijoukko, y_alijoukko in self.iteroi_alijoukot(
+            X_koulutus, y_koulutus, alijoukon_koko=alijoukon_koko, sekoita=sekoita
+        ):
+            hukka = self.kouluta(x_alijoukko, y_alijoukko)
+            hukka_arvot.append(hukka)
+
+        hukka_keskiarvo = np.mean(hukka_arvot)
+        hukka_maksimi = np.max(hukka_arvot)
+        hukka_minimi = np.min(hukka_arvot)
+        return hukka_keskiarvo, hukka_maksimi, hukka_minimi
 
     def sovita(
         self, X_koulutus: NDArray, y_koulutus: NDArray, epookit=10, alijoukon_koko=32, validaatiodata=None, sekoita=True
@@ -259,30 +295,6 @@ class Neuroverkko:
             historia (Historia): Koulutushistoria.
         """
 
-        def iteroi_alijoukot(
-            data: NDArray, vastaukset: NDArray, alijoukon_koko: int, sekoita: bool
-        ) -> Iterator[Tuple[NDArray, NDArray]]:
-            """Iteroija joka tuottaa alijoukot
-
-            Args:
-                data (NDArray): data
-                vastaukset (NDArray): vastaukset
-                alijoukon_koko (int): alijoukon koko
-                sekoita (bool, optional): Tehdäänkö satunnaisotanta. Defaults to False.
-
-            Yields:
-                Iterator[Tuple[NDArray, NDArray]]: Alijoukko (Data, vastaukset)
-            """
-            assert len(data) == len(vastaukset)
-            if sekoita:
-                indeksit = np.random.permutation(len(data))
-            for start_idx in trange(0, len(data) - alijoukon_koko + 1, alijoukon_koko):
-                if sekoita:
-                    otos = indeksit[start_idx : start_idx + alijoukon_koko]
-                else:
-                    otos = slice(start_idx, start_idx + alijoukon_koko)
-                yield data[otos], vastaukset[otos]
-
         historia = {
             "hukka": [],
             "tarkkuus": [],
@@ -292,21 +304,15 @@ class Neuroverkko:
 
         for epookki in range(epookit):
             print(f"Epookki {epookki+1}/{epookit}")
-            hukka_arvot = []
-            for x_alijoukko, y_alijoukko in iteroi_alijoukot(
-                X_koulutus, y_koulutus, alijoukon_koko=alijoukon_koko, sekoita=sekoita
-            ):
-                hukka = self.kouluta(x_alijoukko, y_alijoukko)
-                hukka_arvot.append(hukka)
-
-            hukka_keskiarvo = np.mean(hukka_arvot)
-            hukka_maksimi = np.max(hukka_arvot)
-            hukka_minimi = np.min(hukka_arvot)
+            # Koulutetaan verkko alijoukoilla ja kerätään hukka-arvot
+            hukka_keskiarvo, hukka_maksimi, hukka_minimi = self.kouluta_alijoukot(
+                X_koulutus, y_koulutus, alijoukon_koko, sekoita
+            )
             historia["hukka"].append(hukka_keskiarvo)
             historia["tarkkuus"].append(np.mean(self.ennusta(X_koulutus) == y_koulutus))
             if validaatiodata is not None:
                 validointitarkkuus, validointihukka = self.evaluoi(
-                    validaatiodata[0], validaatiodata[1], return_dict=True
+                    validaatiodata[0], validaatiodata[1], palauta_dict=True
                 ).values()
                 historia["validointitarkkuus"].append(validointitarkkuus)
                 historia["validointihukka"].append(validointihukka)
@@ -315,13 +321,24 @@ class Neuroverkko:
             )
         return historia
 
-    def evaluoi(self, X, y, return_dict=False):
+    def evaluoi(self, X, y, palauta_dict=False):
         """
         Evaluoi mallia käyttäen annettua dataa.
+
+        Args:
+            X (NDArray): Data, jonka päättelemät arvot lasketaan.
+            y (NDArray): X:n vastaukset.
+            palauta_dict (bool, optional): Palautetaanko dict-olio. Oletusarvo on False.
+
+        Returns:
+            Jos palauta_dict on True, palautetaan dict-olio, jossa on avaimet "hukka" ja "tarkkuus".
+
+            Muussa tapauksessa palautetaan tarkkuus (float) väliltä [0-1].
+
         """
-        if return_dict:
+        if palauta_dict:
             y_ulos = self.eteenpain(X)[-1]
-            hukka = softmax_ristientropia(y, y_ulos)
+            hukka = self.softmax_ristientropia(y, y_ulos)
             return {
                 "tarkkuus": np.mean(y_ulos.argmax(axis=-1) == y),
                 "hukka": np.mean(hukka),

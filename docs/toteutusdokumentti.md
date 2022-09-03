@@ -40,7 +40,7 @@ Neuroverkon koulutus tapahtuu seuraavasti:
 - Käytetään optimointimenetelmää (tässä toteutuksessa RMSprop)
 - Päivitetään painokertoimet ja vakioarvot
 
-4. Kun kaikki alijoukot on käyty läpi, ollaan päästy epookin (engl. _epoch_) loppuun ja palataan kohtaan 2, kunnes haluttu määrä epookkeja on käyty läpi. Mikäli neuroverkon koulutus ei paranna tarkkuutta, voidaan koulutus myös keskeyttää aikaisemmin (engl. _Early stopping_)
+4. Kun kaikki alijoukot on käyty läpi, ollaan päästy epookin (engl. _epoch_) loppuun ja palataan kohtaan 2, kunnes haluttu määrä epookkeja on käyty läpi.
 
 ### Käytännön toiminta
 
